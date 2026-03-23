@@ -1,0 +1,87 @@
+# Example Terraform variables for Azure VM deployment
+# Copy this file to terraform.tfvars and fill in with your actual values
+# DO NOT commit actual terraform.tfvars with sensitive data to git
+
+# Sensitive values should be stored in GitHub Secrets or Azure DevOps variable groups
+
+# ============================================================================
+# LINUX VM EXAMPLE CONFIGURATION
+# ============================================================================
+# subscription_id      = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+# os_type              = "linux"
+# vm_name              = "linux-sandbox-vm"
+# resource_group_name  = "linux-vm-rg"
+# location             = "UK South"
+# vm_size              = "Standard_B2ms"
+# admin_username       = "azureuser"
+# admin_password       = "P@ssw0rd1234!"  # Use GitHub Secrets in CI/CD
+# vnet_address_space   = ["10.0.0.0/16"]
+# subnet_address_prefix = "10.0.2.0/24"
+#
+# inbound_security_rule = [
+#   {
+#     name                       = "AllowSSH"
+#     priority                   = 100
+#     direction                  = "Inbound"
+#     access                     = "Allow"
+#     protocol                   = "Tcp"
+#     source_port_range          = "*"
+#     destination_port_range     = "22"
+#     source_address_prefix      = "*"  # Restrict this to your IP in production
+#     destination_address_prefix = "*"
+#   }
+# ]
+#
+# source_image = {
+#   publisher = "Canonical"
+#   offer     = "0001-com-ubuntu-server-jammy"
+#   sku       = "22_04-lts-gen2"
+#   version   = "latest"
+# }
+
+# ============================================================================
+# WINDOWS VM EXAMPLE CONFIGURATION
+# ============================================================================
+# subscription_id      = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+# os_type              = "windows"
+# vm_name              = "windows-sandbox-vm"
+# resource_group_name  = "windows-vm-rg"
+# location             = "UK South"
+# vm_size              = "Standard_B2ms"
+# admin_username       = "AzureAdmin"
+# admin_password       = "P@ssw0rd1234!"  # Use GitHub Secrets in CI/CD
+# vnet_address_space   = ["10.0.0.0/16"]
+# subnet_address_prefix = "10.0.2.0/24"
+#
+# inbound_security_rule = [
+#   {
+#     name                       = "AllowRDP"
+#     priority                   = 100
+#     direction                  = "Inbound"
+#     access                     = "Allow"
+#     protocol                   = "Tcp"
+#     source_port_range          = "*"
+#     destination_port_range     = "3389"
+#     source_address_prefix      = "*"  # Restrict this to your IP in production
+#     destination_address_prefix = "*"
+#   }
+# ]
+#
+# source_image = {
+#   publisher = "MicrosoftWindowsServer"
+#   offer     = "WindowsServer"
+#   sku       = "2022-datacenter-g2"
+#   version   = "latest"
+# }
+
+# ============================================================================
+# ACTUAL VALUES (uncomment and fill in)
+# ============================================================================
+# subscription_id      = ""
+# os_type              = "linux"
+# vm_name              = "sandbox-vm"
+# resource_group_name  = "vm-rg"
+# location             = "UK South"
+# vm_size              = "Standard_B2ms"
+# admin_username       = "azureuser"
+# admin_password       = ""
