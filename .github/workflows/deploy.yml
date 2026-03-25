@@ -1,157 +1,40 @@
-name: Deploy Azure VM
+name: Azure VM Deployment
 
 on:
   push:
-    branches:
-      - main
-    paths:
-      - '**.tf'
-      - '.github/workflows/deploy.yml'
+    branches: [main]
+    paths: ['**.tf', '.github/workflows/deploy.yml']
   workflow_dispatch:
     inputs:
       os_type:
-        description: 'Operating System Type'
+        description: 'Operating System'
         required: true
         default: 'linux'
         type: choice
-        options:
-          - linux
-          - windows
+        options: [linux, windows]
       action:
-        description: 'Terraform Action'
+        description: 'Terraform action'
         required: true
         default: 'plan'
         type: choice
-        options:
-          - plan
-          - apply
-          - destroy
+        options: [plan, apply, destroy]
 
-env:
-  TERRAFORM_VERSION: 1.0
-  AZURE_CLI_VERSION: 2.45.0
+permissions:
+  id-token: write
+  contents: read
 
 jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      id-token: write
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: ${{ env.TERRAFORM_VERSION }}
-
-      - name: Azure Login
-        uses: azure/login@v2
-        with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-
-      - name: Terraform Init
-        run: |
-          terraform init \
-            -backend-config="resource_group_name=${{ secrets.TERRAFORM_RG }}" \
-            -backend-config="storage_account_name=${{ secrets.TERRAFORM_SA }}" \
-            -backend-config="container_name=tfstate" \
-            -backend-config="key=vm.tfstate"
-        env:
-          ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-          ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
-          ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-
-      - name: Determine action
-        id: action
-        run: |
-          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-            echo "tf_action=${{ github.event.inputs.action }}" >> $GITHUB_OUTPUT
-            echo "tf_os_type=${{ github.event.inputs.os_type }}" >> $GITHUB_OUTPUT
-          else
-            echo "tf_action=plan" >> $GITHUB_OUTPUT
-            echo "tf_os_type=linux" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Terraform Validate
-        run: terraform validate
-
-      - name: Terraform Format Check
-        run: terraform fmt -check -recursive
-
-      - name: Terraform Plan
-        run: |
-          terraform plan \
-            -var="subscription_id=${{ secrets.AZURE_SUBSCRIPTION_ID }}" \
-            -var="os_type=${{ steps.action.outputs.tf_os_type }}" \
-            -var="admin_password=${{ secrets.VM_ADMIN_PASSWORD }}" \
-            -out=tfplan
-        env:
-          TF_VAR_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          TF_VAR_os_type: ${{ steps.action.outputs.tf_os_type }}
-          TF_VAR_admin_password: ${{ secrets.VM_ADMIN_PASSWORD }}
-
-      - name: Save plan artifacts
-        if: steps.action.outputs.tf_action == 'plan' || steps.action.outputs.tf_action == 'apply'
-        uses: actions/upload-artifact@v4
-        with:
-          name: tfplan
-          path: tfplan
-          retention-days: 5
-
-      - name: Terraform Apply
-        if: steps.action.outputs.tf_action == 'apply' && github.ref == 'refs/heads/main'
-        run: |
-          terraform apply -auto-approve tfplan
-        env:
-          ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-          ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
-          ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-
-      - name: Terraform Destroy
-        if: steps.action.outputs.tf_action == 'destroy'
-        run: |
-          terraform destroy -auto-approve \
-            -var="subscription_id=${{ secrets.AZURE_SUBSCRIPTION_ID }}" \
-            -var="os_type=${{ steps.action.outputs.tf_os_type }}" \
-            -var="admin_password=${{ secrets.VM_ADMIN_PASSWORD }}"
-        env:
-          ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-          ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
-          ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-
-      - name: Capture outputs
-        if: success()
-        run: |
-          terraform output -json > outputs.json
-          cat outputs.json
-
-      - name: Upload outputs
-        if: success()
-        uses: actions/upload-artifact@v4
-        with:
-          name: terraform-outputs
-          path: outputs.json
-          retention-days: 5
-
-      - name: Comment on PR
-        if: github.event_name == 'pull_request'
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const fs = require('fs');
-            const plan = fs.readFileSync('tfplan.txt', 'utf8');
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: `## Terraform Plan\n\n\`\`\`\n${plan}\n\`\`\``
-            });
-        continue-on-error: true
+  terraform:
+    uses: mmuyideen/terraform-modules-and-pipelines/.github/workflows/terraform-ci.yml@main
+    with:
+      cloud_provider: azure
+      action: ${{ inputs.action || 'plan' }}
+      environment: dev
+      extra_tf_vars: '{"os_type":"${{ inputs.os_type || ''linux'' }}"}'
+    secrets:
+      ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+      ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+      ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+      ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+      TF_VAR_admin_password: ${{ secrets.TF_VAR_ADMIN_PASSWORD }}
+      TF_VAR_subscription_id: ${{ secrets.ARM_SUBSCRIPTION_ID }}

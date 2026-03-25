@@ -4,7 +4,7 @@ terraform {
 
 # Create Resource Group
 module "resource_group" {
-  source = "git::https://github.com/your-org/terraform-modules-and-pipelines.git//modules/azure/resource-group?ref=main"
+  source = "git::https://github.com/mmuyideen/terraform-modules-and-pipelines.git//modules/azure/resource-group?ref=main"
 
   name     = var.resource_group_name
   location = var.location
@@ -18,7 +18,7 @@ module "resource_group" {
 
 # Create Virtual Network
 module "vnet" {
-  source = "git::https://github.com/your-org/terraform-modules-and-pipelines.git//modules/azure/vnet?ref=main"
+  source = "git::https://github.com/mmuyideen/terraform-modules-and-pipelines.git//modules/azure/vnet?ref=main"
 
   name                = "${var.resource_group_name}-vnet"
   resource_group_name = module.resource_group.name
@@ -33,7 +33,7 @@ module "vnet" {
 
 # Create Subnet
 module "subnet" {
-  source = "git::https://github.com/your-org/terraform-modules-and-pipelines.git//modules/azure/subnet?ref=main"
+  source = "git::https://github.com/mmuyideen/terraform-modules-and-pipelines.git//modules/azure/subnet?ref=main"
 
   name                 = "${var.resource_group_name}-subnet"
   resource_group_name  = module.resource_group.name
@@ -43,7 +43,7 @@ module "subnet" {
 
 # Create Network Security Group with dynamic rules
 module "nsg" {
-  source = "git::https://github.com/your-org/terraform-modules-and-pipelines.git//modules/azure/nsg?ref=main"
+  source = "git::https://github.com/mmuyideen/terraform-modules-and-pipelines.git//modules/azure/nsg?ref=main"
 
   name                = "${var.resource_group_name}-nsg"
   resource_group_name = module.resource_group.name
@@ -59,7 +59,7 @@ module "nsg" {
 
 # Create Public IP
 module "public_ip" {
-  source = "git::https://github.com/your-org/terraform-modules-and-pipelines.git//modules/azure/public-ip?ref=main"
+  source = "git::https://github.com/mmuyideen/terraform-modules-and-pipelines.git//modules/azure/public-ip?ref=main"
 
   name                = "${var.vm_name}-pip"
   resource_group_name = module.resource_group.name
@@ -75,7 +75,7 @@ module "public_ip" {
 
 # Create Network Interface
 module "nic" {
-  source = "git::https://github.com/your-org/terraform-modules-and-pipelines.git//modules/azure/nic?ref=main"
+  source = "git::https://github.com/mmuyideen/terraform-modules-and-pipelines.git//modules/azure/nic?ref=main"
 
   name                           = "${var.vm_name}-nic"
   resource_group_name            = module.resource_group.name
@@ -93,7 +93,7 @@ module "nic" {
 
 # Create VM - Linux or Windows based on os_type
 module "vm" {
-  source = var.os_type == "linux" ? "git::https://github.com/your-org/terraform-modules-and-pipelines.git//modules/azure/linux-vm?ref=main" : "git::https://github.com/your-org/terraform-modules-and-pipelines.git//modules/azure/windows-vm?ref=main"
+  source = var.os_type == "linux" ? "git::https://github.com/mmuyideen/terraform-modules-and-pipelines.git//modules/azure/linux-vm?ref=main" : "git::https://github.com/mmuyideen/terraform-modules-and-pipelines.git//modules/azure/windows-vm?ref=main"
 
   name                = var.vm_name
   resource_group_name = module.resource_group.name

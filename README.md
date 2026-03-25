@@ -30,7 +30,7 @@ This repository contains a unified Terraform configuration that dynamically crea
 
 1. Clone this repository:
    ```bash
-   git clone https://github.com/your-org/azure-vm-terraform.git
+   git clone https://github.com/mmuyideen/azure-vm-terraform.git
    cd azure-vm-terraform
    ```
 
