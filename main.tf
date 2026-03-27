@@ -91,14 +91,14 @@ module "nic" {
   }
 }
 
-# Create VM - Linux or Windows based on os_type
+# Create VM - Linux or Windows based on os_type (handled internally by the module)
 module "vm" {
-  source = var.os_type == "linux" ? "git::https://github.com/mmuyideen/terraform-modules-and-pipelines.git//modules/azure/linux-vm?ref=main" : "git::https://github.com/mmuyideen/terraform-modules-and-pipelines.git//modules/azure/windows-vm?ref=main"
+  source = "git::https://github.com/mmuyideen/terraform-modules-and-pipelines.git//modules/azure/vm?ref=main"
 
   name                = var.vm_name
   resource_group_name = module.resource_group.name
   location            = module.resource_group.location
-  vm_size             = var.vm_size
+  size                = var.vm_size
 
   network_interface_ids = [module.nic.id]
 
@@ -110,10 +110,7 @@ module "vm" {
   os_type = var.os_type
 
   # Source image - use provided or let module use defaults
-  publisher = var.source_image != null ? var.source_image.publisher : null
-  offer     = var.source_image != null ? var.source_image.offer : null
-  sku       = var.source_image != null ? var.source_image.sku : null
-  version   = var.source_image != null ? var.source_image.version : null
+  source_image_reference = var.source_image != null ? var.source_image : {}
 
   tags = {
     Environment = "Sandbox"
